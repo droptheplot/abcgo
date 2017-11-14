@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -10,26 +10,31 @@ import (
 	"log"
 	"math"
 	"os"
+	"text/tabwriter"
 )
 
+// Reports is a collection of Report.
 type Reports []Report
 
+// Report contains statistics for single function.
 type Report struct {
-	name string
-	line int
-	abc  ABC
-}
-
-type ABC struct {
-	A int
-	B int
-	C int
+	Path       string `json:"path"`
+	Line       int    `json:"line"`
+	Name       string `json:"name"`
+	Assignment int    `json:"assignment"`
+	Branch     int    `json:"branch"`
+	Condition  int    `json:"condition"`
+	Score      int    `json:"score"`
 }
 
 func main() {
-	var path string
+	var (
+		path   string
+		format string
+	)
 
 	flag.StringVar(&path, "path", "", "Path to file")
+	flag.StringVar(&format, "format", "table", "Output format")
 
 	flag.Parse()
 
@@ -39,7 +44,15 @@ func main() {
 	}
 
 	reports := reportFile(path)
-	fmt.Print(reports)
+
+	switch format {
+	case "table":
+		reports.renderTable()
+	case "json":
+		reports.renderJSON()
+	default:
+		panic("unknown format.")
+	}
 }
 
 func reportFile(path string) Reports {
@@ -54,13 +67,18 @@ func reportFile(path string) Reports {
 
 	ast.Inspect(n, func(n ast.Node) bool {
 		if fn, ok := n.(*ast.FuncDecl); ok {
-			report := Report{name: fn.Name.Name, line: fset.Position(fn.Pos()).Line}
+			report := Report{
+				Path: fset.File(fn.Pos()).Name(),
+				Line: fset.Position(fn.Pos()).Line,
+				Name: fn.Name.Name,
+			}
 
 			ast.Inspect(n, func(n ast.Node) bool {
 				reportNode(&report, n)
 				return true
 			})
 
+			report.Calc()
 			reports = append(reports, report)
 			return false
 		}
@@ -73,42 +91,55 @@ func reportFile(path string) Reports {
 func reportNode(report *Report, n ast.Node) {
 	switch n := n.(type) {
 	case *ast.AssignStmt, *ast.IncDecStmt:
-		report.abc.A += 1
+		report.Assignment++
 	case *ast.CallExpr:
-		report.abc.B += 1
+		report.Branch++
 	case *ast.IfStmt:
 		if n.Else != nil {
-			report.abc.C += 1
+			report.Condition++
 		}
 	case *ast.BinaryExpr, *ast.CaseClause:
-		report.abc.C += 1
+		report.Condition++
 	}
-}
-
-func (reports Reports) String() string {
-	var buffer bytes.Buffer
-
-	for _, report := range reports {
-		buffer.WriteString(report.String())
-		buffer.WriteString("\n")
-	}
-
-	return buffer.String()
 }
 
 func (report Report) String() string {
 	return fmt.Sprintf(
-		"%s %d %d",
-		report.name,
-		report.line,
-		report.abc.calc(),
+		"%s:%d\t%s\t%d\t{%d, %d, %d}",
+		report.Path,
+		report.Line,
+		report.Name,
+		report.Score,
+		report.Assignment,
+		report.Branch,
+		report.Condition,
 	)
 }
 
-func (abc ABC) calc() int {
-	a := math.Pow(float64(abc.A), 2)
-	b := math.Pow(float64(abc.B), 2)
-	c := math.Pow(float64(abc.C), 2)
+// Calc updates Score value.
+func (report *Report) Calc() {
+	a := math.Pow(float64(report.Assignment), 2)
+	b := math.Pow(float64(report.Branch), 2)
+	c := math.Pow(float64(report.Condition), 2)
 
-	return int(math.Sqrt(a + b + c))
+	report.Score = int(math.Sqrt(a + b + c))
+}
+
+func (reports Reports) renderTable() {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+	defer w.Flush()
+
+	for _, report := range reports {
+		fmt.Fprintln(w, report.String())
+	}
+}
+
+func (reports Reports) renderJSON() {
+	bytes, err := json.Marshal(reports)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	os.Stdout.Write(bytes)
 }

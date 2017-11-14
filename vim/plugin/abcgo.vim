@@ -1,4 +1,4 @@
-function! s:ABCGo()
+function! ABCGoBackground(channel, reports)
   if exists("g:abcgo_max")
     let abcgo_max = g:abcgo_max
   else
@@ -6,22 +6,24 @@ function! s:ABCGo()
   endif
 
   let current_file = expand("%:p")
-  let reports = system("go run main.go -path " . current_file)
 
   sign define abcgo text=#! texthl=Visual
-
   execute "sign unplace * file=" . current_file
 
-  for report in split(reports, "\n")
+  for report in split(a:reports, "\n")
     let report = split(report, " ")
     if report[2] >= abcgo_max
-      execute ":sign place 1 line=" . report[1] . " name=abcgo file=" . current_file
+      echo report
+      execute ":sign place 63278 line=" . report[1] . " name=abcgo file=" . current_file
     endif
   endfor
 endfunction
-command! ABCGo call s:ABCGo()
+
+function! ABCGo()
+  call job_start("go run main.go -path " . expand("%:p"), {'callback': 'ABCGoBackground', 'mode': 'raw'})
+endfunction
 
 augroup abcgo_autocmd
-  autocmd BufWrite *.go ABCGo
-  autocmd BufRead *.go ABCGo
+  autocmd BufWrite *.go call ABCGo()
+  autocmd BufRead *.go call ABCGo()
 augroup END

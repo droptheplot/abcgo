@@ -33,11 +33,13 @@ func main() {
 	var (
 		path    string
 		format  string
+		sort    bool
 		reports Reports
 	)
 
 	flag.StringVar(&path, "path", "", "Path to file")
 	flag.StringVar(&format, "format", "table", "Output format")
+	flag.BoolVar(&sort, "sort", false, "Sort by score")
 
 	flag.Parse()
 
@@ -52,9 +54,9 @@ func main() {
 		reports = append(reports, reportFile(file)...)
 	}
 
-	sort.Slice(reports, func(i, j int) bool {
-		return reports[i].Score > reports[j].Score
-	})
+	if sort {
+		reports.Sort()
+	}
 
 	switch format {
 	case "table":
@@ -180,4 +182,10 @@ func (reports Reports) renderJSON() {
 	}
 
 	os.Stdout.Write(bytes)
+}
+
+func (reports Reports) Sort() {
+	sort.Slice(reports, func(i, j int) bool {
+		return reports[i].Score > reports[j].Score
+	})
 }

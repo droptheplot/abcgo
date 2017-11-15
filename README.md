@@ -73,6 +73,7 @@ $ abcgo -path main.go -format json
 
 * `-path` - Path to file or directory.
 * `-format` - Output format (`table` (default) or `json`).
+* `-sort` - Sort functions by score.
 
 ### Plugins
 

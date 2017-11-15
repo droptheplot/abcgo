@@ -10,6 +10,8 @@ import (
 	"log"
 	"math"
 	"os"
+	"path/filepath"
+	"sort"
 	"text/tabwriter"
 )
 
@@ -29,8 +31,9 @@ type Report struct {
 
 func main() {
 	var (
-		path   string
-		format string
+		path    string
+		format  string
+		reports Reports
 	)
 
 	flag.StringVar(&path, "path", "", "Path to file")
@@ -43,7 +46,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	reports := reportFile(path)
+	fileList := listFiles(path)
+
+	for _, file := range fileList {
+		reports = append(reports, reportFile(file)...)
+	}
+
+	sort.Slice(reports, func(i, j int) bool {
+		return reports[i].Score > reports[j].Score
+	})
 
 	switch format {
 	case "table":
@@ -53,6 +64,31 @@ func main() {
 	default:
 		panic("unknown format.")
 	}
+}
+
+func listFiles(path string) []string {
+	var fileList []string
+
+	fileInfo, _ := os.Stat(path)
+
+	appendAbsPath := func(p string) {
+		p, _ = filepath.Abs(p)
+		fileList = append(fileList, p)
+	}
+
+	if fileInfo.IsDir() {
+		filepath.Walk(path, func(p string, f os.FileInfo, err error) error {
+			if filepath.Ext(f.Name()) == ".go" {
+				appendAbsPath(p)
+			}
+
+			return nil
+		})
+	} else {
+		appendAbsPath(fileInfo.Name())
+	}
+
+	return fileList
 }
 
 func reportFile(path string) Reports {
@@ -105,7 +141,7 @@ func reportNode(report *Report, n ast.Node) {
 
 func (report Report) String() string {
 	return fmt.Sprintf(
-		"%s:%d\t%s\t%d\t{%d, %d, %d}",
+		"%s:%d\t%s\t%d\t%d\t%d\t%d",
 		report.Path,
 		report.Line,
 		report.Name,
@@ -128,6 +164,8 @@ func (report *Report) Calc() {
 func (reports Reports) renderTable() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
 	defer w.Flush()
+
+	fmt.Fprintln(w, "Source\tFunc\tScore\tA\tB\tC")
 
 	for _, report := range reports {
 		fmt.Fprintln(w, report.String())

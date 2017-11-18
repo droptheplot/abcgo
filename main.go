@@ -49,9 +49,16 @@ func main() {
 	}
 
 	fileList := listFiles(path)
+	fileSet := token.NewFileSet()
 
-	for _, file := range fileList {
-		reports = append(reports, reportFile(file)...)
+	for _, path := range fileList {
+		node, err := parser.ParseFile(fileSet, path, nil, 0)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		reports = append(reports, reportFile(fileSet, node)...)
 	}
 
 	if sort {
@@ -63,6 +70,8 @@ func main() {
 		reports.renderTable()
 	case "json":
 		reports.renderJSON()
+	case "raw":
+		reports.renderRaw()
 	default:
 		panic("unknown format.")
 	}
@@ -93,14 +102,7 @@ func listFiles(path string) []string {
 	return fileList
 }
 
-func reportFile(path string) Reports {
-	fset := token.NewFileSet()
-	n, err := parser.ParseFile(fset, path, nil, 0)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func reportFile(fset *token.FileSet, n ast.Node) Reports {
 	var reports Reports
 
 	ast.Inspect(n, func(n ast.Node) bool {
@@ -182,6 +184,18 @@ func (reports Reports) renderJSON() {
 	}
 
 	os.Stdout.Write(bytes)
+}
+
+func (reports Reports) renderRaw() {
+	for _, report := range reports {
+		fmt.Printf(
+			"%s\t%d\t%s\t%d\n",
+			report.Path,
+			report.Line,
+			report.Name,
+			report.Score,
+		)
+	}
 }
 
 func (reports Reports) Sort() {

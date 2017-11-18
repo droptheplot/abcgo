@@ -1,8 +1,8 @@
 # ABCGo
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/droptheplot/abcgo)](https://goreportcard.com/report/github.com/droptheplot/abcgo)
+[![Build Status](https://travis-ci.org/droptheplot/abcgo.svg?branch=master)](https://travis-ci.org/droptheplot/abcgo)
 [![GoDoc](https://godoc.org/github.com/droptheplot/abcgo?status.svg)](https://godoc.org/github.com/droptheplot/abcgo)
-
 
 ABC metrics for Go source code.
 

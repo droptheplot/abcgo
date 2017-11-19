@@ -7,7 +7,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -55,7 +54,7 @@ func main() {
 		node, err := parser.ParseFile(fileSet, path, nil, 0)
 
 		if err != nil {
-			log.Fatal(err)
+			continue
 		}
 
 		reports = append(reports, reportFile(fileSet, node)...)

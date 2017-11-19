@@ -1,29 +1,44 @@
 function! ABCGoBackground(channel, reports)
-  if exists("g:abcgo_max")
-    let abcgo_max = g:abcgo_max
-  else
-    let abcgo_max = 10
+  if !exists("g:abcgo_max")
+    let g:abcgo_max = 0
+  endif
+
+  if !exists("b:abcgo_count")
+    let b:abcgo_count = 0
   endif
 
   let current_file = expand("%:p")
-
   sign define abcgo text=#! texthl=Visual
-  execute "sign unplace * file=" . current_file
+
+  if strlen(a:reports) > 0
+    let i = 0
+
+    while i <= b:abcgo_count
+      let i += 1
+
+      execute "sign unplace 9314 file=" . current_file
+    endwhile
+  endif
+
+  let b:abcgo_count = 0
 
   for report in split(a:reports, "\n")
-    let report = split(report, " ")
-    if report[2] >= abcgo_max
-      echo report
-      execute ":sign place 63278 line=" . report[1] . " name=abcgo file=" . current_file
+    let report = split(report, "\t")
+
+    if report[3] >= g:abcgo_max
+      let b:abcgo_count += 1
+      execute ":sign place 9314 line=" . report[1] . " name=abcgo file=" . current_file
     endif
   endfor
 endfunction
 
 function! ABCGo()
-  call job_start("go run main.go -path " . expand("%:p"), {'callback': 'ABCGoBackground', 'mode': 'raw'})
+  call job_start("go run main.go -format raw -path " . expand("%:p"), {'callback': 'ABCGoBackground', 'mode': 'raw'})
 endfunction
 
 augroup abcgo_autocmd
+  autocmd!
+
   autocmd BufWrite *.go call ABCGo()
   autocmd BufRead *.go call ABCGo()
 augroup END

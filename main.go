@@ -33,12 +33,14 @@ func main() {
 		path    string
 		format  string
 		sort    bool
+		noTest  bool
 		reports Reports
 	)
 
 	flag.StringVar(&path, "path", "", "Path to file")
 	flag.StringVar(&format, "format", "table", "Output format")
 	flag.BoolVar(&sort, "sort", false, "Sort by score")
+	flag.BoolVar(&noTest, "no-test", false, "Skip *_test.go files")
 
 	flag.Parse()
 
@@ -54,6 +56,10 @@ func main() {
 		node, err := parser.ParseFile(fileSet, path, nil, 0)
 
 		if err != nil {
+			continue
+		}
+
+		if noTest && isTest(path) {
 			continue
 		}
 
@@ -201,4 +207,10 @@ func (reports Reports) Sort() {
 	sort.Slice(reports, func(i, j int) bool {
 		return reports[i].Score > reports[j].Score
 	})
+}
+
+func isTest(p string) bool {
+	match, err := filepath.Match("*_test.go", filepath.Base(p))
+
+	return match && err == nil
 }

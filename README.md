@@ -38,13 +38,15 @@ $ (cd $GOPATH/src/github.com/droptheplot/abcgo && go install)
 
 ```shell
 $ abcgo -path main.go
-main.go:28   init   9    1   8    5
-main.go:54   main   13   5   13   1
+Source       Func   Score   A   B    C
+main.go:28   init   9       1   8    5
+main.go:54   main   13      5   13   1
 
 $ abcgo -path ./
-main.go:28        init            9    1   8    5
-main.go:54        main            13   5   13   1
-main_test.go:54   TestSomething   9    0   9    2
+Source            Func            Score   A   B    C
+main.go:28        init            9       1   8    5
+main.go:54        main            13      5   13   1
+main_test.go:54   TestSomething   9       0   9    2
 
 $ abcgo -path main.go -format json
 [
@@ -71,9 +73,10 @@ $ abcgo -path main.go -format json
 
 #### Options
 
-* `-path` - Path to file or directory.
-* `-format` - Output format (`table` (default) or `json`).
+* `-path [path]` - Path to file or directory.
+* `-format [format]` - Output format (`table` (default) or `json`).
 * `-sort` - Sort functions by score.
+* `-no-test` - Skip `*_test.go` files.
 
 ### Plugins
 

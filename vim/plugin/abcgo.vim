@@ -8,7 +8,7 @@ function! ABCGoBackground(channel, reports)
   endif
 
   let current_file = expand("%:p")
-  sign define abcgo text=#! texthl=Visual
+  sign define abcgo text=c texthl=WarningMsg
 
   if strlen(a:reports) > 0
     let i = 0

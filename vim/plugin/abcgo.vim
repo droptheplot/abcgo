@@ -1,6 +1,6 @@
 function! ABCGoBackground(channel, reports)
   if !exists("g:abcgo_max")
-    let g:abcgo_max = 0
+    let g:abcgo_max = 20
   endif
 
   if !exists("b:abcgo_count")

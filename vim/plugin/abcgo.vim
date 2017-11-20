@@ -33,7 +33,7 @@ function! ABCGoBackground(channel, reports)
 endfunction
 
 function! ABCGo()
-  call job_start("go run main.go -format raw -path " . expand("%:p"), {'callback': 'ABCGoBackground', 'mode': 'raw'})
+  call job_start($GOPATH . "/bin/abcgo -format raw -path " . expand("%:p"), {'callback': 'ABCGoBackground', 'mode': 'raw'})
 endfunction
 
 augroup abcgo_autocmd

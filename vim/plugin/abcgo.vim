@@ -39,6 +39,6 @@ endfunction
 augroup abcgo_autocmd
   autocmd!
 
-  autocmd BufWrite *.go call ABCGo()
-  autocmd BufRead *.go call ABCGo()
+  autocmd BufWritePost *.go call ABCGo()
+  autocmd BufReadPost *.go call ABCGo()
 augroup END

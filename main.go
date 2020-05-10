@@ -71,6 +71,8 @@ func main() {
 	}
 
 	switch format {
+	case "summary":
+		reports.renderSummary()
 	case "table":
 		reports.renderTable()
 	case "json":
@@ -168,6 +170,20 @@ func (report *Report) Calc() {
 	c := math.Pow(float64(report.Condition), 2)
 
 	report.Score = int(math.Sqrt(a + b + c))
+}
+
+func (reports Reports) renderSummary() {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+	defer w.Flush()
+	a, b, c := 0, 0, 0
+	for _, report := range reports {
+		a = a + report.Assignment
+		b = b + report.Branch
+		c = c + report.Condition
+	}
+
+	fmt.Fprintln(w, "\tA\tB\tC")
+	fmt.Fprintf(w, "%s\t%d\t%d\t%d\n", "Project summary:", a, b, c)
 }
 
 func (reports Reports) renderTable() {

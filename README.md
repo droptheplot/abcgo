@@ -92,6 +92,13 @@ main.go 54 main 13
 main_test.go 54 TestSomething 9
 ```
 
+#### Summary
+```shell
+$ abcgo -path ./ -format summary
+                   A    B    C
+Project summary:   22   43   15
+```
+
 ### Options
 
 * `-path [path]` - Path to file or directory.

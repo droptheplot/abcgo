@@ -70,6 +70,10 @@ func main() {
 		reports.Sort()
 	}
 
+	if reports == nil {
+		os.Exit(1)
+	}
+
 	switch format {
 	case "summary":
 		reports.renderSummary()
@@ -103,7 +107,7 @@ func listFiles(path string) []string {
 			return nil
 		})
 	} else {
-		appendAbsPath(fileInfo.Name())
+		appendAbsPath(path)
 	}
 
 	return fileList
